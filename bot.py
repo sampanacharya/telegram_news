@@ -20,6 +20,7 @@ def send_news(message):
         if (not etag and not res) or et != etag:
             res = ""
             etag = et
+            print(etag)
             for ele in news:
                 res += ele['title'] + "\n " + ele['link'] + "\n" + ele['published_date'] + "\n"
                 res += "\n"
