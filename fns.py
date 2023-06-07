@@ -5,7 +5,8 @@ from bs4 import BeautifulSoup
 import hashlib
 
 def etag_generator(data):
-    return hashlib.md5(data.encode()).hexdigest()
+    s = "".join(data)
+    return hashlib.md5(s.encode()).hexdigest()
 
 def get_news():
     if hasattr(ssl, "_create_unverified_context"):
@@ -17,10 +18,10 @@ def get_news():
              ]
 
     content = []
-    s = ""
+    titles = []
     for i in range(5):
         feed = feedparser.parse(feeds[i])
-        s += feed.entries[0].title
+        titles.append(feed.entries[0].title)
         
         news_dict = {
             "title" : feed.entries[i].title,
@@ -30,7 +31,7 @@ def get_news():
         }
         content.append(news_dict)
     
-    etag = etag_generator(s)
+    etag = etag_generator(titles)
     return content, etag
 
 def rewrite(url):
