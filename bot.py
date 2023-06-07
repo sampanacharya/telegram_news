@@ -1,6 +1,7 @@
 import os
 import telebot 
 from fns import get_news
+import time
 
 bot = telebot.TeleBot("6274653807:AAFLp2bltMY5DysTK_2XfsyeWWO9VG-4HA4")
 
@@ -25,6 +26,7 @@ def send_news(message):
                 res += ele['title'] + "\n " + ele['link'] + "\n" + ele['published_date'] + "\n"
                 res += "\n"
             bot.reply_to(message, res)
+            time.sleep(3600)
     
 @bot.message_handler(commands=['stop'])
 def stop(message):
