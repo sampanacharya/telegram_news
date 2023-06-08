@@ -10,7 +10,7 @@ from ds import *
 url = "https://api.openai.com/v1/chat/completions"
 headers = {
     "Content-Type": "application/json",
-    "Authorization": "Bearer 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",
+    "Authorization": "Bearer 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",
 }
 
 # Fetching the updates from feed
@@ -37,6 +37,7 @@ def rewrite(para):
     "messages": [{"role": "user", "content": "rewrite this article: " + para}],
      }
     response = requests.post(url, headers = headers, json=payload).json()
+    print(response)
     return response['choices'][0]['message']['content']
 
 def article_rewrite(news_dict):
@@ -53,3 +54,5 @@ def article_rewrite(news_dict):
         'title': title,
         'paragraph' : paragraphs,
     }
+
+article_rewrite(feed_fetcher(RSS_FEEDS[2]))

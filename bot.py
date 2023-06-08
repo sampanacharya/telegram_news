@@ -37,25 +37,21 @@ def updateMe(message):
             news_set = []
             continue
 
-        try:
-            news_dict = feed_fetcher(RSS_FEEDS[idx])
-            etag = etag_gen(news_dict['title'])
-            print(etag, news_set)
-            if(etag not in news_set):
-                
-                rewritten_Dict = article_rewrite(news_dict)
-                
-                news_set.append(etag)
+        news_dict = feed_fetcher(RSS_FEEDS[idx])
+        etag = etag_gen(news_dict['title'])
+        print(etag, news_set)
+        if(etag not in news_set):
+            
+            rewritten_Dict = article_rewrite(news_dict)
+            
+            news_set.append(etag)
 
-                reply = rewritten_Dict['title'] + '\n' + '\n' + "----------------------" + "\n"
-                reply += rewritten_Dict['paragraph'] + '\n'
-                reply += 'Source: ' + news_dict['link'] + '\n\n'
-                reply += 'Published On: ' + news_dict['published'] + '\n'
-                
-                bot.send_message(message.chat.id, reply)
-        except:
-            pass 
-
+            reply = rewritten_Dict['title'] + '\n' + '\n' + "----------------------" + "\n"
+            reply += rewritten_Dict['paragraph'] + '\n'
+            reply += 'Source: ' + news_dict['link'] + '\n\n'
+            reply += 'Published On: ' + news_dict['published'] + '\n'
+            
+            bot.send_message(message.chat.id, reply)
         idx += 1
         
 
