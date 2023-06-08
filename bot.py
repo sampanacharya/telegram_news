@@ -9,7 +9,7 @@ flag = True
 
 @bot.message_handler(commands = ['start'])
 def start(message):
-    bot.send_message(message.chat.id, "Hi User, I am a bot/n Type /news to see what's going on in the crypto world")
+    bot.send_message(message.chat.id, "Hi User, I am a bot/n Type /news to see what's going on in the crypto world and to receive ehnanced news feed type /updates")
 
 @bot.message_handler(commands = ['news'])
 def news(message):
