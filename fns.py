@@ -1,47 +1,55 @@
-import feedparser
-import ssl
-import requests
-from bs4 import BeautifulSoup
+import feedparser 
+import ssl 
+import requests 
 import hashlib
+from bs4 import BeautifulSoup
 
-def etag_generator(data):
-    s = "".join(data)
-    return hashlib.md5(s.encode()).hexdigest()
+from ds import *
 
-def get_news():
+# API URL DECLARATION
+url = "https://api.openai.com/v1/chat/completions"
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer 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",
+}
+
+# Fetching the updates from feed
+def feed_fetcher(feed):
     if hasattr(ssl, "_create_unverified_context"):
         ssl._create_default_https_context = ssl._create_unverified_context
-
-    feeds = ['https://www.coindesk.com/arc/outboundfeeds/rss/?outputType=xml','https://cointelegraph.com/rss',
-             'https://cryptopotato.com/feed/','https://cryptonews.com/news/feed/',
-             'https://www.fxempire.com/api/v1/en/articles/rss/news',
-             ]
-
-    content = []
-    titles = []
-    for i in range(5):
-        feed = feedparser.parse(feeds[i])
-        titles.append(feed.entries[0].title)
-        
-        news_dict = {
-            "title" : feed.entries[i].title,
-            "summary" : feed.entries[i].summary,
-            "published_date" : feed.entries[i].published,
-            "link" : feed.entries[i].link,
-        }
-        content.append(news_dict)
     
-    etag = etag_generator(titles)
-    return content, etag
+    feed = feedparser.parse(feed)
+    return {
+        'title': feed.entries[0].title,
+        'summary': feed.entries[0].summary,
+        'link' : feed.entries[0].link,
+        'published': feed.entries[0].published,
+    }
 
-def rewrite(url):
-    response = requests.get(url)
-    content = response.content
-    soup = BeautifulSoup(content, "html.parser")
-    content = soup.find('div')
-    paragraphs = content.find_all('p')
-    extracted_content = '\n'.join([p.get_text() for p in paragraphs])
-    print(extracted_content)
-    
-# data, etag = get_news()
-# print(data, etag)
+# Etag Generation
+def etag_gen(string):
+    return hashlib.md5(string.encode()).hexdigest()
+
+# Rewriting the articles
+def rewrite(para):
+    payload = {
+    "model": "gpt-3.5-turbo",
+    "messages": [{"role": "user", "content": "rewrite this article: " + para}],
+     }
+    response = requests.post(url, headers = headers, json=payload).json()
+    return response['choices'][0]['message']['content']
+
+def article_rewrite(news_dict):
+    response = requests.get(news_dict['link'])
+
+    title = news_dict['title']
+    paragraphs = ""
+    if(response.status_code == 200):
+        soup = BeautifulSoup(response.content, 'html.parser')
+        p = "".join([p.text.strip() for p in soup.find_all('p')])
+        paragraphs += rewrite(p)
+
+    return {
+        'title': title,
+        'paragraph' : paragraphs,
+    }
