@@ -1,43 +1,76 @@
-import feedparser
-import ssl
-import requests
-from bs4 import BeautifulSoup
-import hashlib
+import telebot
+from transformers import pipeline
 
-def etag_generator(data):
-    s = "".join(data)
-    return hashlib.md5(s.encode()).hexdigest()
+from fns import feed_fetcher, article_rewrite,etag_gen
+from ds import RSS_FEEDS
 
-def get_news():
-    if hasattr(ssl, "_create_unverified_context"):
-        ssl._create_default_https_context = ssl._create_unverified_context
+bot = telebot.TeleBot("5944447116:AAFdqJ4xaH-af_XRZZBD9TTSSoRy5lHcckI")
+flag = True
 
-    feeds = ['http://lorem-rss.herokuapp.com/feed?unit=second&interval=30'
-             ]
+model_pipeline = pipeline("sentiment-analysis",model="siebert/sentiment-roberta-large-english")
 
-    content = []
-    titles = []
-    for i in range(5):
-        feed = feedparser.parse(feeds[0])
-        titles.append(feed.entries[0].title)
+@bot.message_handler(commands = ['start'])
+def start(message):
+    bot.send_message(message.chat.id, "Hi User, I am a bot/n Type /news to see what's going on in the crypto world and to receive ehnanced news feed type /updates")
+
+@bot.message_handler(commands = ['news'])
+def news(message):
+    news_update = ""
+    for feed in RSS_FEEDS:
+        news_dict = feed_fetcher(feed)
+        news_update += news_dict['title'] + "\n"
+        news_update += news_dict['link'] + '\n' + news_dict['published'] + '\n\n'
+
+    bot.send_message(message.chat.id, news_update)
+
+
+@bot.message_handler(commands=['updates'])
+def updateMe(message):
+    global flag
+    flag = True
+    news_set = []
+
+    data = []
+    idx = 0
+    while(flag):
+        if(idx == len(RSS_FEEDS)):
+            idx = 0
+            continue
         
-        news_dict = {
-            "title" : feed.entries[i].title,
-            "summary" : feed.entries[i].summary,
-            "published_date" : feed.entries[i].published,
-            "link" : feed.entries[i].link,
-        }
-        content.append(news_dict)
-    
-    etag = etag_generator(titles)
-    return content, etag
+        if(len(news_set) == 10):
+            news_set = []
+            continue
 
-def rewrite(url):
-    response = requests.get(url)
-    content = response.content
-    soup = BeautifulSoup(content, "html.parser")
-    content = soup.find('div')
-    paragraphs = content.find_all('p')
-    extracted_content = '\n'.join([p.get_text() for p in paragraphs])
-    print(extracted_content)
-    
+        news_dict = feed_fetcher(RSS_FEEDS[idx])
+        etag = etag_gen(news_dict['title'])
+        #print(etag, news_set)
+        if(etag not in news_set):
+            
+            rewritten_Dict = article_rewrite(news_dict)
+            
+            news_set.append(etag)
+            data.append(rewritten_Dict['title'])
+
+            reply = rewritten_Dict['title'] + '\n' + '\n' + "----------------------" + "\n"
+            reply += rewritten_Dict['paragraph'] + '\n'
+            reply += 'Source: ' + news_dict['link'] + '\n\n'
+            reply += 'Published On: ' + news_dict['published'] + '\n'
+
+            if("cointelegraph" in news_dict['link']):
+                print(rewritten_Dict['paragraph'] + "\n\n")
+                sent = model_pipeline(rewritten_Dict['paragraph'])
+            else:
+                sent = model_pipeline(rewritten_Dict['title'])
+            reply += '\n Sentiment Rating: ' + str(sent) + '\n' 
+
+            bot.send_message(message.chat.id, reply)
+        idx += 1
+        
+
+@bot.message_handler(commands = ['stop'])
+def stop(message):
+    global flag
+    flag = False 
+    bot.send_message(message.chat.id, "I'll be stopping now 😔")
+
+bot.infinity_polling()

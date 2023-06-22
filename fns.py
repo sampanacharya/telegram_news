@@ -6,12 +6,14 @@ from bs4 import BeautifulSoup
 
 from ds import *
 
+key="YOUR API KEY"
 # API URL DECLARATION
 url = "https://api.openai.com/v1/chat/completions"
 headers = {
     "Content-Type": "application/json",
-    "Authorization": "Bearer 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",
+    "Authorization": f"Bearer {key}",
 }
+
 
 # Fetching the updates from feed
 def feed_fetcher(feed):
@@ -37,7 +39,6 @@ def rewrite(para):
     "messages": [{"role": "user", "content": "rewrite this article: " + para}],
      }
     response = requests.post(url, headers = headers, json=payload).json()
-    print(response)
     return response['choices'][0]['message']['content']
 
 def article_rewrite(news_dict):
@@ -55,4 +56,3 @@ def article_rewrite(news_dict):
         'paragraph' : paragraphs,
     }
 
-article_rewrite(feed_fetcher(RSS_FEEDS[2]))
