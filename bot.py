@@ -7,7 +7,7 @@ from ds import RSS_FEEDS
 bot = telebot.TeleBot("6274653807:AAFLp2bltMY5DysTK_2XfsyeWWO9VG-4HA4")
 flag = True
 
-model_pipeline = pipeline("sentiment-analysis",model="siebert/sentiment-roberta-large-english")
+# model_pipeline = pipeline("sentiment-analysis",model="siebert/sentiment-roberta-large-english")
 
 @bot.message_handler(commands = ['start'])
 def start(message):
@@ -56,12 +56,12 @@ def updateMe(message):
             reply += 'Source: ' + news_dict['link'] + '\n\n'
             reply += 'Published On: ' + news_dict['published'] + '\n'
 
-            if("cointelegraph" in news_dict['link']):
-                print(rewritten_Dict['paragraph'] + "\n\n")
-                sent = model_pipeline(rewritten_Dict['paragraph'])
-            else:
-                sent = model_pipeline(rewritten_Dict['title'])
-            reply += '\n Sentiment Rating: Label - ' + str(sent[0]['label']) +' Score: '  + str(sent[0]['score']) + '\n' 
+            # if("cointelegraph" in news_dict['link']):
+            #     print(rewritten_Dict['paragraph'] + "\n\n")
+            #     sent = model_pipeline(rewritten_Dict['paragraph'])
+            # else:
+            #     sent = model_pipeline(rewritten_Dict['title'])
+            # reply += '\n Sentiment Rating: Label - ' + str(sent[0]['label']) +' Score: '  + str(sent[0]['score']) + '\n' 
 
             bot.send_message("@cryptoNarad", reply)
         idx += 1
