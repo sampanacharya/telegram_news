@@ -1,13 +1,11 @@
 import telebot
-from transformers import pipeline
 
-from fns import feed_fetcher, article_rewrite,etag_gen
+from fns import feed_fetcher, article_rewrite,etag_gen, sentiment_inference
 from ds import RSS_FEEDS
 
-bot = telebot.TeleBot("5944447116:AAFdqJ4xaH-af_XRZZBD9TTSSoRy5lHcckI")
+bot = telebot.TeleBot("6274653807:AAHew94any4eDI5uIfWu7bcUBUL-ytiQ-Jo")
 flag = True
 
-model_pipeline = pipeline("sentiment-analysis",model="siebert/sentiment-roberta-large-english")
 
 @bot.message_handler(commands = ['start'])
 def start(message):
@@ -56,13 +54,9 @@ def updateMe(message):
             reply += 'Source: ' + news_dict['link'] + '\n\n'
             reply += 'Published On: ' + news_dict['published'] + '\n'
 
-            if("cointelegraph" in news_dict['link']):
-                print(rewritten_Dict['paragraph'] + "\n\n")
-                sent = model_pipeline(rewritten_Dict['paragraph'])
-            else:
-                sent = model_pipeline(rewritten_Dict['title'])
-            reply += '\n Sentiment Rating: ' + str(sent) + '\n' 
-
+            sent = sentiment_inference(rewritten_Dict['title'])
+            reply += '\n Sentiment Rating:\n ' + str(sent) + '\n' 
+            reply += 'NOTE:\n-Sentiment Rating is powered by distilroberta model and might be under inspection\n-All the ratings provided are out of 1'
             bot.send_message(message.chat.id, reply)
         idx += 1
         
