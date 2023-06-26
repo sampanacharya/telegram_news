@@ -38,7 +38,6 @@ def updateMe(message):
         if(len(news_set) == 10):
             news_set = []
             continue
-        
         try:
             news_dict = feed_fetcher(RSS_FEEDS[idx])
             etag = etag_gen(news_dict['title'])
@@ -55,11 +54,15 @@ def updateMe(message):
                 reply += 'Source: ' + news_dict['link'] + '\n\n'
                 reply += 'Published On: ' + news_dict['published'] + '\n'
 
-                sent = sentiment_inference(rewritten_Dict['title'])
-                reply += '\n Sentiment Rating:\n ' + str(sent) + '\n' 
-                reply += 'NOTE:\n-Sentiment Rating is powered by distilroberta model and might be under inspection\n-All the ratings provided are out of 1'
-                bot.send_message("@cryptoNarad", reply)
-            idx += 1
+                try:
+                    sent = sentiment_inference(rewritten_Dict['title'])
+                    reply += '\n Sentiment Rating:\n ' + str(sent) + '\n' 
+                    reply += 'NOTE:\n-Sentiment Rating is powered by distilroberta model and might be under inspection\n-All the ratings provided are out of 1'
+                    bot.send_message("@cryptoNarad", reply)
+                except:
+                    pass 
+                
+                idx += 1
         except:
             pass       
 
